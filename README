@@ -3,7 +3,11 @@ ActsAsOwned
 
 The ActsAsOwned plugin allows for associating objects with users, verifying this association, and
 automatically setting the default scope to find according to the current logged in user.
-Note: This plugin depends on the restful_authentication plugin to access the current user.
+
+Requirements
+============
+Rails 2.3 or later
+restful_authentication plugin
 
 Example
 =======
