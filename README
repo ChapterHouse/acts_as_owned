@@ -1,0 +1,33 @@
+ActsAsOwned
+===========
+
+The ActsAsOwned plugin allows for associating objects with users, verifying this association, and
+automatically setting the default scope to find according to the current logged in user.
+Note: This plugin depends on the restful_authentication plugin to access the current user.
+
+Example
+=======
+
+Assuming that you could some how access the current logged in user at the model level,
+you could write something like this for your class.
+
+   class OwnedItem < ActiveRecord::Base
+     
+     default_scope :conditions => {:user_id => current_user ? current_user.id : nil}
+     belongs_to :user
+     validates_presence_of :user
+     validates_associated :user
+     before_validation_on_create, Proc.new { |record| record.user = current_user }
+     
+   end
+
+Some of this could also be handled in the controller. Specifically the association of the current user
+with the record and the scoping of the finds. However, instead of doing all of this, you could just use
+
+   class OwnedItem < ActiveRecord::Base
+     acts_as_owned
+   end
+
+Short sweet and to the point.
+
+Copyright (c) 2009 Frank Hall, released under the MIT license
