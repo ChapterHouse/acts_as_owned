@@ -83,7 +83,7 @@ during creation. The class that has this specified needs to have a
 The restful authenticication plugin must also be installed.
 </p>
 <p>
-Owned item example:
+<a href="../Owned.html">Owned</a> item example:
 </p>
 <pre>
   class OwnedItem &lt; ActiveRecord::Base
@@ -93,12 +93,15 @@ Owned item example:
 <p>
 The above would replace (assuming that somehow you could access the current
 user in the model without <a
-href="ClassMethods.html#M000002">acts_as_owned</a>)
+href="ClassMethods.html#M000007">acts_as_owned</a> and pass blocks to
+default_scope)
 </p>
 <pre>
   class OwnedItem &lt; ActiveRecord::Base
 
-    default_scope :conditions =&gt; {:user_id =&gt; current_user ? current_user.id : nil}
+    default_scope do
+      :conditions =&gt; {:user_id =&gt; current_user ? current_user.id : nil}
+    end
 
     belongs_to :user
 
@@ -116,7 +119,11 @@ If you wish some additional default scoping
 <pre>
   class OwnedItem &lt; ActiveRecord::Base
     acts_as_owned
-    default_scope :conditions =&gt; { :active =&gt; true, acts_as_owned_class.default_scope_conditions }
+    default_scope do
+      conditions =&gt; { :your_value =&gt; true }
+      conditions.merge! acts_as_owned_class.default_scope_conditions
+      :conditions =&gt; conditions
+    end
   end
 </pre>
 
@@ -129,8 +136,8 @@ If you wish some additional default scoping
       <h3 class="section-bar">Methods</h3>
 
       <div class="name-list">
-      <a href="#M000002">acts_as_owned</a>&nbsp;&nbsp;
-      <a href="#M000001">acts_as_owned_class</a>&nbsp;&nbsp;
+      <a href="#M000007">acts_as_owned</a>&nbsp;&nbsp;
+      <a href="#M000008">acts_as_owned_class</a>&nbsp;&nbsp;
       </div>
     </div>
 
@@ -150,13 +157,42 @@ If you wish some additional default scoping
 
     <!-- if method_list -->
     <div id="methods">
-      <h3 class="section-bar">Public Instance methods</h3>
+      <h3 class="section-bar">Public Class methods</h3>
 
-      <div id="method-M000002" class="method-detail">
-        <a name="M000002"></a>
+      <div id="method-M000008" class="method-detail">
+        <a name="M000008"></a>
 
         <div class="method-heading">
-          <a href="#M000002" class="method-signature">
+          <a href="#M000008" class="method-signature">
+          <span class="method-name">acts_as_owned_class</span><span class="method-args">()</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Quick access to the actual class providing <a
+href="ClassMethods.html#M000007">acts_as_owned</a>
+</p>
+          <p><a class="source-toggle" href="#"
+            onclick="toggleCode('M000008-source');return false;">[Source]</a></p>
+          <div class="method-source-code" id="M000008-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/active_record/acts/owned.rb, line 139</span>
+139:             <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">acts_as_owned_class</span>
+140:               <span class="ruby-operator">::</span><span class="ruby-constant">ActiveRecord</span><span class="ruby-operator">::</span><span class="ruby-constant">Acts</span><span class="ruby-operator">::</span><span class="ruby-constant">Owned</span>
+141:             <span class="ruby-keyword kw">end</span>
+</pre>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="section-bar">Public Instance methods</h3>
+
+      <div id="method-M000007" class="method-detail">
+        <a name="M000007"></a>
+
+        <div class="method-heading">
+          <a href="#M000007" class="method-signature">
           <span class="method-name">acts_as_owned</span><span class="method-args">(options={})</span>
           </a>
         </div>
@@ -176,75 +212,118 @@ The following options allow you to turn off automatic behaviors. Examples
 assume user option was not specified.
 </p>
 <ul>
-<li><tt>belongs_to</tt> - belongs_to :user. (default: <tt>true</tt>)
-
-</li>
-<li><tt>validates_presence_of</tt> - validate_presense_of :user (default:
+<li><tt>belongs_to</tt> - establish the association with the user. (default:
 <tt>true</tt>)
 
+<pre>
+     belongs_to :user
+</pre>
 </li>
-<li><tt>validates_associated</tt> - validate_associated :user (default:
+<li><tt>validates_presence_of</tt> - validate the presence of the user.
+(default: <tt>true</tt>)
+
+<pre>
+     validate_presense_of :user
+</pre>
+</li>
+<li><tt>validates_associated</tt> - validate the associated user. (default:
 <tt>true</tt>)
 
+<pre>
+     validate_associated :user
+</pre>
 </li>
-<li><tt>default_scope</tt> - default_scope :conditions =&gt;
-acts_as_owned_class.default_scope_conditions (default: <tt>true</tt>)
+<li><tt>default_scope</tt> - automatically sets up the default scope for the
+model. (default: <tt>true</tt>)
 
+<pre>
+     default_scope do
+       {:conditions =&gt; acts_as_owned_class.default_scope_conditions}
+     end
+</pre>
 </li>
-<li><tt>before_validation_on_create</tt> - {self.user =
-ActiveRecord::Acts::Owned.current_user} (default: <tt>true</tt>)
+<li><tt>auto_admin</tt> - if current_user responds to admin? and it returns
+true, then automatically pass ownership checking as if the :admin =&gt;
+true flag was passed for all finds done by that admin. (default:
+<tt>true</tt>)
 
+<pre>
+     Model.find_all_by_condition(value, :admin =&gt; current_user.admin?)
+
+     # can be replaced by the following to yield the same reults
+
+     Model.find_all_by_condition(value)
+</pre>
 </li>
 </ul>
           <p><a class="source-toggle" href="#"
-            onclick="toggleCode('M000002-source');return false;">[Source]</a></p>
-          <div class="method-source-code" id="M000002-source">
+            onclick="toggleCode('M000007-source');return false;">[Source]</a></p>
+          <div class="method-source-code" id="M000007-source">
 <pre>
-    <span class="ruby-comment cmt"># File lib/active_record/acts/owned.rb, line 73</span>
-73:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">acts_as_owned</span>(<span class="ruby-identifier">options</span>={})
-74: 
-75:           <span class="ruby-identifier">user</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:user</span>] <span class="ruby-operator">||</span> <span class="ruby-identifier">:user</span>         
-76:           <span class="ruby-identifier">user</span> = <span class="ruby-identifier">user</span>.<span class="ruby-identifier">to_sym</span>
-77:           <span class="ruby-identifier">use_belongs_to</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:belongs_to</span>] <span class="ruby-operator">||</span> <span class="ruby-keyword kw">true</span>         
-78:           <span class="ruby-identifier">use_validates_presence_of</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:validates_presence_of</span>] <span class="ruby-operator">||</span> <span class="ruby-keyword kw">true</span>
-79:           <span class="ruby-identifier">use_validates_associated</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:validates_associated</span>] <span class="ruby-operator">||</span> <span class="ruby-keyword kw">true</span>
-80:           <span class="ruby-identifier">use_default_scope</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:default_scope</span>] <span class="ruby-operator">||</span> <span class="ruby-keyword kw">true</span>
-81:           <span class="ruby-identifier">use_before_validation_on_create</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:before_validation_on_create</span>] <span class="ruby-operator">||</span> <span class="ruby-keyword kw">true</span>
-82: 
-83:           <span class="ruby-identifier">send</span>(<span class="ruby-identifier">:belongs_to</span>, <span class="ruby-identifier">user</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">use_belongs_to</span>
-84:           <span class="ruby-identifier">send</span>(<span class="ruby-identifier">:validates_presence_of</span>, <span class="ruby-identifier">user</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">use_validates_presence_of</span>
-85:           <span class="ruby-identifier">send</span>(<span class="ruby-identifier">:validates_associated</span>, <span class="ruby-identifier">user</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">use_validates_associated</span>
-86:           <span class="ruby-identifier">send</span>(<span class="ruby-identifier">:default_scope</span>, <span class="ruby-identifier">:conditions</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">acts_as_owned_class</span>.<span class="ruby-identifier">default_scope_conditions</span>(<span class="ruby-node">&quot;#{user}_id&quot;</span>.<span class="ruby-identifier">to_sym</span>)) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">use_default_scope</span>
-87:           <span class="ruby-identifier">send</span>(<span class="ruby-identifier">:before_validation_on_create</span>, <span class="ruby-constant">Proc</span>.<span class="ruby-identifier">new</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">record</span><span class="ruby-operator">|</span> <span class="ruby-identifier">record</span>.<span class="ruby-identifier">send</span>(<span class="ruby-node">&quot;#{user}=&quot;</span>.<span class="ruby-identifier">to_sym</span>, <span class="ruby-identifier">acts_as_owned_class</span>.<span class="ruby-identifier">current_user</span>) }) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">use_before_validation_on_create</span>
-88:         
-89:         <span class="ruby-keyword kw">end</span>
-</pre>
-          </div>
-        </div>
-      </div>
-
-      <div id="method-M000001" class="method-detail">
-        <a name="M000001"></a>
-
-        <div class="method-heading">
-          <a href="#M000001" class="method-signature">
-          <span class="method-name">acts_as_owned_class</span><span class="method-args">()</span>
-          </a>
-        </div>
-      
-        <div class="method-description">
-          <p>
-Quick access to the actual class providing <a
-href="ClassMethods.html#M000002">acts_as_owned</a>
-</p>
-          <p><a class="source-toggle" href="#"
-            onclick="toggleCode('M000001-source');return false;">[Source]</a></p>
-          <div class="method-source-code" id="M000001-source">
-<pre>
-    <span class="ruby-comment cmt"># File lib/active_record/acts/owned.rb, line 60</span>
-60:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">acts_as_owned_class</span>
-61:           <span class="ruby-operator">::</span><span class="ruby-constant">ActiveRecord</span><span class="ruby-operator">::</span><span class="ruby-constant">Acts</span><span class="ruby-operator">::</span><span class="ruby-constant">Owned</span>
-62:         <span class="ruby-keyword kw">end</span>
+     <span class="ruby-comment cmt"># File lib/active_record/acts/owned.rb, line 135</span>
+135:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">acts_as_owned</span>(<span class="ruby-identifier">options</span>={})
+136: 
+137:           <span class="ruby-keyword kw">class</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-keyword kw">self</span>
+138:             <span class="ruby-comment cmt"># Quick access to the actual class providing acts_as_owned</span>
+139:             <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">acts_as_owned_class</span>
+140:               <span class="ruby-operator">::</span><span class="ruby-constant">ActiveRecord</span><span class="ruby-operator">::</span><span class="ruby-constant">Acts</span><span class="ruby-operator">::</span><span class="ruby-constant">Owned</span>
+141:             <span class="ruby-keyword kw">end</span>
+142:           
+143:             <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">validate_find_options_with_acts_as_owned</span>(<span class="ruby-identifier">options</span>) <span class="ruby-comment cmt">#:nodoc:</span>
+144:               <span class="ruby-identifier">options</span>.<span class="ruby-identifier">assert_valid_keys</span>(<span class="ruby-identifier">acts_as_owned_class</span>.<span class="ruby-identifier">valid_find_options</span> <span class="ruby-operator">+</span> [<span class="ruby-identifier">:admin</span>])
+145:             <span class="ruby-keyword kw">end</span>
+146: 
+147:             <span class="ruby-ivar">@@auto_admin</span> = <span class="ruby-keyword kw">true</span>
+148:             
+149:             <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">auto_admin</span> <span class="ruby-comment cmt">#:nodoc:</span>
+150:               <span class="ruby-ivar">@@auto_admin</span>
+151:             <span class="ruby-keyword kw">end</span>
+152:             
+153:             <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">auto_admin=</span>(<span class="ruby-identifier">value</span>) <span class="ruby-comment cmt">#:nodoc:</span>
+154:               <span class="ruby-ivar">@@auto_admin</span> = <span class="ruby-identifier">value</span>
+155:             <span class="ruby-keyword kw">end</span>
+156: 
+157:             <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find_every_with_acts_as_owned</span>(<span class="ruby-identifier">options</span>) <span class="ruby-comment cmt">#:nodoc:</span>
+158:               <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>.<span class="ruby-identifier">has_key?</span>(<span class="ruby-identifier">:admin</span>)
+159:                 <span class="ruby-identifier">acts_as_owned_class</span>.<span class="ruby-identifier">with_ownership_at</span>(<span class="ruby-operator">!</span><span class="ruby-identifier">options</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">:admin</span>)) { <span class="ruby-identifier">find_every_without_acts_as_owned</span>(<span class="ruby-identifier">options</span>) }
+160:               <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">auto_admin</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">acts_as_owned_class</span>.<span class="ruby-identifier">current_user_admin?</span>
+161:                 <span class="ruby-identifier">acts_as_owned_class</span>.<span class="ruby-identifier">with_ownership_at</span>(<span class="ruby-keyword kw">false</span>) { <span class="ruby-identifier">find_every_without_acts_as_owned</span>(<span class="ruby-identifier">options</span>) }
+162:               <span class="ruby-keyword kw">else</span>
+163:                 <span class="ruby-identifier">find_every_without_acts_as_owned</span>(<span class="ruby-identifier">options</span>)
+164:               <span class="ruby-keyword kw">end</span>
+165:             <span class="ruby-keyword kw">end</span>
+166:             
+167:             <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find_from_ids_with_acts_as_owned</span>(<span class="ruby-identifier">ids</span>, <span class="ruby-identifier">options</span>) <span class="ruby-comment cmt">#:nodoc:</span>
+168:               <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>.<span class="ruby-identifier">has_key?</span>(<span class="ruby-identifier">:admin</span>) <span class="ruby-operator">||</span> (<span class="ruby-identifier">auto_admin</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">acts_as_owned_class</span>.<span class="ruby-identifier">current_user</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:admin?</span>) <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">acts_as_owned_class</span>.<span class="ruby-identifier">current_user</span>.<span class="ruby-identifier">admin?</span>)
+169:                 <span class="ruby-identifier">acts_as_owned_class</span>.<span class="ruby-identifier">with_ownership_at</span>(<span class="ruby-operator">!</span><span class="ruby-identifier">options</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">:admin</span>)) { <span class="ruby-identifier">find_from_ids_without_acts_as_owned</span>(<span class="ruby-identifier">ids</span>, <span class="ruby-identifier">options</span>) }
+170:               <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">auto_admin</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">acts_as_owned_class</span>.<span class="ruby-identifier">current_user_admin?</span>
+171:                 <span class="ruby-identifier">acts_as_owned_class</span>.<span class="ruby-identifier">with_ownership_at</span>(<span class="ruby-keyword kw">false</span>) { <span class="ruby-identifier">find_from_ids_without_acts_as_owned</span>(<span class="ruby-identifier">ids</span>, <span class="ruby-identifier">options</span>) }
+172:               <span class="ruby-keyword kw">else</span>
+173:                 <span class="ruby-identifier">find_from_ids_without_acts_as_owned</span>(<span class="ruby-identifier">ids</span>, <span class="ruby-identifier">options</span>)
+174:               <span class="ruby-keyword kw">end</span>
+175:             <span class="ruby-keyword kw">end</span>
+176: 
+177:             <span class="ruby-identifier">alias_method_chain</span> <span class="ruby-identifier">:validate_find_options</span>, <span class="ruby-identifier">:acts_as_owned</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">method_defined?</span>(<span class="ruby-identifier">:validate_find_options_without_acts_as_owned</span>)
+178:             <span class="ruby-identifier">alias_method_chain</span> <span class="ruby-identifier">:find_every</span>, <span class="ruby-identifier">:acts_as_owned</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">method_defined?</span>(<span class="ruby-identifier">:find_every_without_acts_as_owned</span>)
+179:             <span class="ruby-identifier">alias_method_chain</span> <span class="ruby-identifier">:find_from_ids</span>, <span class="ruby-identifier">:acts_as_owned</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">method_defined?</span>(<span class="ruby-identifier">:find_from_ids_without_acts_as_owned</span>)
+180: 
+181:           <span class="ruby-keyword kw">end</span>
+182:           
+183:           <span class="ruby-identifier">user</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:user</span>] <span class="ruby-operator">||</span> <span class="ruby-identifier">:user</span>         
+184:           <span class="ruby-identifier">user</span> = <span class="ruby-identifier">user</span>.<span class="ruby-identifier">to_sym</span>
+185:           <span class="ruby-identifier">use_belongs_to</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:belongs_to</span>] <span class="ruby-operator">||</span> <span class="ruby-keyword kw">true</span>         
+186:           <span class="ruby-identifier">use_validates_presence_of</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:validates_presence_of</span>] <span class="ruby-operator">||</span> <span class="ruby-keyword kw">true</span>
+187:           <span class="ruby-identifier">use_validates_associated</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:validates_associated</span>] <span class="ruby-operator">||</span> <span class="ruby-keyword kw">true</span>
+188:           <span class="ruby-identifier">use_default_scope</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:default_scope</span>] <span class="ruby-operator">||</span> <span class="ruby-keyword kw">true</span>
+189:           <span class="ruby-identifier">use_before_validation_on_create</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:before_validation_on_create</span>] <span class="ruby-operator">||</span> <span class="ruby-keyword kw">true</span>
+190:           <span class="ruby-identifier">use_auto_admin</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:auto_admin</span>] <span class="ruby-operator">||</span> <span class="ruby-keyword kw">true</span>
+191: 
+192:           <span class="ruby-identifier">send</span>(<span class="ruby-identifier">:belongs_to</span>, <span class="ruby-identifier">user</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">use_belongs_to</span>
+193:           <span class="ruby-identifier">send</span>(<span class="ruby-identifier">:validates_presence_of</span>, <span class="ruby-identifier">user</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">use_validates_presence_of</span>
+194:           <span class="ruby-identifier">send</span>(<span class="ruby-identifier">:validates_associated</span>, <span class="ruby-identifier">user</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">use_validates_associated</span>
+195:           <span class="ruby-identifier">send</span>(<span class="ruby-identifier">:default_scope</span>, <span class="ruby-operator">&amp;</span><span class="ruby-constant">Proc</span>.<span class="ruby-identifier">new</span> { {<span class="ruby-identifier">:conditions</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">acts_as_owned_class</span>.<span class="ruby-identifier">default_scope_conditions</span>(<span class="ruby-node">&quot;#{user}_id&quot;</span>.<span class="ruby-identifier">to_sym</span>) }}) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">use_default_scope</span>
+196:           <span class="ruby-identifier">send</span>(<span class="ruby-identifier">:auto_admin=</span>, <span class="ruby-identifier">use_auto_admin</span>)
+197:         <span class="ruby-keyword kw">end</span>
 </pre>
           </div>
         </div>

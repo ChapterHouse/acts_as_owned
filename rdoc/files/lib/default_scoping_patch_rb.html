@@ -5,10 +5,10 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <title>File: README</title>
+  <title>File: default_scoping_patch.rb</title>
   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
   <meta http-equiv="Content-Script-Type" content="text/javascript" />
-  <link rel="stylesheet" href=".././rdoc-style.css" type="text/css" media="screen" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
   <script type="text/javascript">
   // <![CDATA[
 
@@ -47,16 +47,16 @@
 
 
   <div id="fileHeader">
-    <h1>README</h1>
+    <h1>default_scoping_patch.rb</h1>
     <table class="header-table">
     <tr class="top-aligned-row">
       <td><strong>Path:</strong></td>
-      <td>README
+      <td>lib/default_scoping_patch.rb
       </td>
     </tr>
     <tr class="top-aligned-row">
       <td><strong>Last Update:</strong></td>
-      <td>Wed Jun 03 10:11:11 -0500 2009</td>
+      <td>Mon Jun 08 10:22:53 -0500 2009</td>
     </tr>
     </table>
   </div>
@@ -70,49 +70,10 @@
 
     <div id="description">
       <p>
-ActsAsOwned
-</p>
-<h6>=====</h6>
-<p>
-The ActsAsOwned plugin allows for associating objects with users, verifying
-this association, and automatically setting the default scope to find
-according to the current logged in user. Note: This plugin depends on the
-restful_authentication plugin to access the current user.
-</p>
-<p>
-Example
-</p>
-<h6>=</h6>
-<p>
-Assuming that you could some how access the current logged in user at the
-model level, you could write something like this for your class.
-</p>
-<pre>
-   class OwnedItem &lt; ActiveRecord::Base
-
-     default_scope :conditions =&gt; {:user_id =&gt; current_user ? current_user.id : nil}
-     belongs_to :user
-     validates_presence_of :user
-     validates_associated :user
-     before_validation_on_create, Proc.new { |record| record.user = current_user }
-
-   end
-</pre>
-<p>
-Some of this could also be handled in the controller. Specifically the
-association of the current user with the record and the scoping of the
-finds. However, instead of doing all of this, you could just use
-</p>
-<pre>
-   class OwnedItem &lt; ActiveRecord::Base
-     acts_as_owned
-   end
-</pre>
-<p>
-Short sweet and to the point.
-</p>
-<p>
-Copyright (c) 2009 Frank Hall, released under the MIT license
+Based on <a
+href="http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets/1812-default_scope-cant-take-procs">rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets/1812-default_scope-cant-take-procs</a>
+Adds the ability of default_scope to take procs Taken from <a
+href="http://gist.github.com/81187">gist.github.com/81187</a>
 </p>
 
     </div>
