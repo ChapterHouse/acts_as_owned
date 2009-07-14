@@ -183,14 +183,7 @@ module ActiveRecord #:nodoc:
           default_options = { :user => :user, :belongs_to => true, :validates_presence_of => true, :validates_associated => true, :default_scope => true, :before_validation_on_create => true, :auto_admin => true }
           options = default_options.merge(options)
           
-          user = options[:user]
-          user = user.to_sym
-          use_belongs_to = options[:belongs_to]
-          use_validates_presence_of = options[:validates_presence_of]
-          use_validates_associated = options[:validates_associated]
-          use_default_scope = options[:default_scope]
-          use_before_validation_on_create = options[:before_validation_on_create]
-          use_auto_admin = options[:auto_admin]
+          user = options[:user].to_sym
 
           send(:belongs_to, user) if options[:belongs_to]
           send(:validates_presence_of, user) if options[:validates_presence_of]
