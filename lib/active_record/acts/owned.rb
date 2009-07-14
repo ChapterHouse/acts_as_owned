@@ -180,20 +180,24 @@ module ActiveRecord #:nodoc:
 
           end
           
-          user = options[:user] || :user         
+          default_options = { :user => :user, :belongs_to => true, :validates_presence_of => true, :validates_associated => true, :default_scope => true, :before_validation_on_create => true, :auto_admin => true }
+          options = default_options.merge(options)
+          
+          user = options[:user]
           user = user.to_sym
-          use_belongs_to = options[:belongs_to] || true         
-          use_validates_presence_of = options[:validates_presence_of] || true
-          use_validates_associated = options[:validates_associated] || true
-          use_default_scope = options[:default_scope] || true
-          use_before_validation_on_create = options[:before_validation_on_create] || true
-          use_auto_admin = options[:auto_admin] || true
+          use_belongs_to = options[:belongs_to]
+          use_validates_presence_of = options[:validates_presence_of]
+          use_validates_associated = options[:validates_associated]
+          use_default_scope = options[:default_scope]
+          use_before_validation_on_create = options[:before_validation_on_create]
+          use_auto_admin = options[:auto_admin]
 
-          send(:belongs_to, user) if use_belongs_to
-          send(:validates_presence_of, user) if use_validates_presence_of
-          send(:validates_associated, user) if use_validates_associated
-          send(:default_scope, &Proc.new { {:conditions => acts_as_owned_class.default_scope_conditions("#{user}_id".to_sym) }}) if use_default_scope
-          send(:auto_admin=, use_auto_admin)
+          send(:belongs_to, user) if options[:belongs_to]
+          send(:validates_presence_of, user) if options[:validates_presence_of]
+          send(:validates_associated, user) if options[:validates_associated]
+          send(:default_scope, &Proc.new { {:conditions => acts_as_owned_class.default_scope_conditions("#{user}_id".to_sym) }}) if options[:default_scope]
+          send(:before_validation_on_create, &Proc.new { |record| record.user = acts_as_owned_class.current_user; true }) if options[:before_validation_on_create]
+          send(:auto_admin=, options[:auto_admin])
         end
 
       end
